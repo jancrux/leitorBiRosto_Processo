@@ -3,10 +3,12 @@ package pt.leiturabi.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -45,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pt.leiturabi.AppViewModel
 import pt.leiturabi.data.RecordSummaryDto
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PesquisarScreen(
     viewModel: AppViewModel,
@@ -205,12 +208,12 @@ private fun FiltroBooleano(rotulo: String, ativo: Boolean, onChange: (Boolean) -
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RegistoCartao(registo: RecordSummaryDto, onClick: () -> Unit) {
     Card(
-        onClick = onClick,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
     ) {
         Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
             if (registo.coverUrl != null) {

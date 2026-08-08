@@ -1,6 +1,7 @@
 package pt.leiturabi
 
 import android.app.Application
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -63,6 +64,7 @@ data class SearchState(
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
 
+    private val context: Context get() = getApplication<Application>()
     private val store = SettingsStore(app)
     private val repository = RecordRepository()
 
@@ -131,7 +133,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun juntarFicheiros(uris: List<Uri>) {
         if (uris.isEmpty()) return
         viewModelScope.launch {
-            val novos = uris.mapNotNull { copyToCache(getApplication(), it) }
+            val novos = uris.mapNotNull { copyToCache(context, it) }
             if (novos.isEmpty()) {
                 _create.update { it.copy(erro = "Não foi possível ler os ficheiros escolhidos.") }
                 return@launch
@@ -191,7 +193,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             _create.update { it.copy(aGuardar = true) }
-            val posicao = lastKnownLocation(getApplication())
+            val posicao = lastKnownLocation(context)
             val resultado = repository.createRecord(
                 files = estado.ficheiros,
                 author = _settings.value.author,
@@ -260,7 +262,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun pesquisarPorRosto(uri: Uri) {
         viewModelScope.launch {
-            val ficheiro = copyToCache(getApplication(), uri) ?: run {
+            val ficheiro = copyToCache(context, uri) ?: run {
                 _search.update { it.copy(erro = "Não foi possível ler a imagem.") }
                 return@launch
             }
@@ -326,7 +328,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun juntarAnexos(recordId: Int, uris: List<Uri>, onDone: (String) -> Unit) {
         viewModelScope.launch {
-            val novos = uris.mapNotNull { copyToCache(getApplication(), it) }
+            val novos = uris.mapNotNull { copyToCache(context, it) }
             if (novos.isEmpty()) return@launch onDone("Nada para juntar.")
             repository.addAttachments(recordId, novos)
                 .onSuccess {
