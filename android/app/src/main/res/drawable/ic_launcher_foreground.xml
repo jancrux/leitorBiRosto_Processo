@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Camara com rosto: corpo da maquina + circulo da lente + moldura de detecao -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:fillColor="#4F8CFF"
+        android:pathData="M30,40 h9 l4,-6 h22 l4,6 h9 a5,5 0 0 1 5,5 v25 a5,5 0 0 1 -5,5 H30 a5,5 0 0 1 -5,-5 V45 a5,5 0 0 1 5,-5 z" />
+
+    <path
+        android:fillColor="#1B2436"
+        android:pathData="M54,44 m-13,0 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0 z" />
+
+    <path
+        android:fillColor="#8FB6FF"
+        android:pathData="M54,44 m-7,0 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 z" />
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.2"
+        android:fillColor="#00000000"
+        android:pathData="M38,62 v6 h6 M70,62 v6 h-6 M38,78 v-6 h6 M70,78 v-6 h-6" />
+</vector>

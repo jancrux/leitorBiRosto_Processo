@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  O servidor Python corre tipicamente em http://192.168.x.x:8000 (sem TLS) dentro
+  da rede local, por isso o trafego em claro tem de ser permitido.
+  Android nao suporta gamas de IP nesta configuracao, so dominios exatos - dai a
+  permissao global. Para acesso fora da rede local usa o tunel ngrok, que e HTTPS.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

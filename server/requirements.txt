@@ -1,0 +1,19 @@
+# --- API ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+python-dotenv==1.0.1
+pydantic==2.10.4
+
+# --- Imagem ---
+pillow==11.1.0
+numpy==2.2.1
+opencv-python-headless==4.10.0.84
+
+# --- PDF: miniatura, texto pesquisavel e leitura dos campos do formulario ---
+pymupdf==1.25.1
+
+# --- Reconhecimento facial ---
+# insightface compila uma extensao C; se falhar ver README (seccao "Problemas de instalacao")
+insightface==0.7.3
+onnxruntime==1.20.1

@@ -1,0 +1,73 @@
+# ---------------------------------------------------------------
+# DADOS E SEGREDOS - nunca versionar
+# ---------------------------------------------------------------
+# Base de dados, ficheiros carregados, miniaturas e recortes de rosto.
+# Contem dados pessoais (nomes, numeros de matricula, imagens de rostos).
+server/data/
+server/**/data/
+
+# Chaves de API e configuracao local
+.env
+*.env
+!.env.example
+
+# PDFs e imagens de exemplo colocados na raiz durante testes
+/exemplos/
+*.pdf
+!docs/**/*.pdf
+
+# ---------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Modelos do insightface descarregados no arranque (centenas de MB)
+.insightface/
+models/
+
+# ---------------------------------------------------------------
+# Android / Gradle
+# ---------------------------------------------------------------
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/local.properties
+android/.idea/
+android/app/release/
+*.apk
+*.aab
+*.aar
+*.iml
+.cxx/
+
+# Wrapper binario (gerado pelo Android Studio / gradle wrapper)
+android/gradle/wrapper/gradle-wrapper.jar
+android/gradlew
+android/gradlew.bat
+
+# Assinatura
+*.jks
+*.keystore
+keystore.properties
+
+# ---------------------------------------------------------------
+# Editores e sistema
+# ---------------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+*~
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

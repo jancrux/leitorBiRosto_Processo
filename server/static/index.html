@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leitura_Bi · Registos de Viatura Policial</title>
+<style>
+  :root {
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a; --text:#e6e8ee;
+    --muted:#98a0b0; --accent:#4f8cff; --soft:#4f8cff1f; --ok:#43c47a; --warn:#f0b429;
+    --danger:#ff5f57; --radius:10px;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+         font:14px/1.55 "Segoe UI", system-ui, sans-serif; }
+  header { position:sticky; top:0; z-index:30; background:var(--panel);
+           border-bottom:1px solid var(--line); padding:10px 18px; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  h1 { font-size:16px; margin:0 12px 0 0; white-space:nowrap; }
+  h1 span { color:var(--accent); }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted);
+       margin:18px 0 8px; border-bottom:1px solid var(--line); padding-bottom:5px; }
+  input, select, textarea, button {
+    background:var(--panel2); color:var(--text); border:1px solid var(--line);
+    border-radius:8px; padding:8px 10px; font:inherit; outline:none; }
+  input:focus, textarea:focus, select:focus { border-color:var(--accent); }
+  button { cursor:pointer; } button:hover { border-color:var(--accent); }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  button.ghost { background:transparent; }
+  button.danger { color:var(--danger); }
+  .grow { flex:1; min-width:200px; }
+  .muted { color:var(--muted); }
+  .tabs { display:flex; gap:6px; }
+  .tab { padding:8px 16px; border-radius:8px 8px 0 0; border:1px solid transparent;
+         cursor:pointer; font-weight:600; color:var(--muted); }
+  .tab.active { background:var(--panel2); border-color:var(--line); border-bottom-color:var(--panel2); color:var(--text); }
+  main { padding:16px 18px 60px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; }
+  .list { display:flex; flex-direction:column; gap:10px; }
+  .rec { display:grid; grid-template-columns:88px 1fr auto; gap:14px; align-items:center;
+         background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+         padding:10px; cursor:pointer; transition:border-color .12s, transform .12s; }
+  .rec:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .rec .cover { width:88px; height:88px; border-radius:8px; object-fit:cover; background:#000;
+                display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:11px; }
+  .rec .t { font-weight:600; font-size:15px; }
+  .rec .sub { color:var(--muted); font-size:12px; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:5px; }
+  .chip { font-size:11px; padding:2px 8px; border-radius:999px; background:var(--soft);
+          color:var(--accent); white-space:nowrap; }
+  .chip.warn { background:#f0b4291f; color:var(--warn); }
+  .chip.ok { background:#43c47a1f; color:var(--ok); }
+  .chip.grey { background:#98a0b01f; color:var(--muted); }
+  .drop { border:2px dashed var(--line); border-radius:var(--radius); padding:26px;
+          text-align:center; color:var(--muted); transition:.15s; cursor:pointer; }
+  .drop.over { border-color:var(--accent); background:var(--soft); color:var(--text); }
+  .files { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .file { display:flex; gap:8px; align-items:center; background:var(--panel2);
+          border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-size:12px; }
+  .file b { font-weight:600; } .file .x { cursor:pointer; color:var(--danger); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.5px; }
+  .kv { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:10px 18px; }
+  .kv div span { display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+  .kv div b { font-weight:600; }
+  dialog { border:1px solid var(--line); background:var(--panel); color:var(--text);
+           border-radius:14px; padding:0; max-width:1080px; width:95vw; }
+  dialog::backdrop { background:#000c; }
+  .modal-body { padding:18px; max-height:84vh; overflow:auto; }
+  .thumbs { display:flex; gap:10px; flex-wrap:wrap; }
+  .thumbs figure { margin:0; width:132px; }
+  .thumbs img { width:132px; height:132px; object-fit:cover; border-radius:8px;
+                border:1px solid var(--line); background:#000; cursor:pointer; }
+  .thumbs figcaption { font-size:11px; color:var(--muted); margin-top:4px; word-break:break-all; }
+  .faces { display:flex; gap:8px; flex-wrap:wrap; }
+  .faces figure { margin:0; width:76px; text-align:center; }
+  .faces img { width:68px; height:68px; border-radius:8px; object-fit:cover;
+               border:1px solid var(--line); cursor:pointer; }
+  .faces figcaption { font-size:10px; color:var(--muted); }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--panel2);
+           border:1px solid var(--line); padding:10px 18px; border-radius:10px; opacity:0;
+           transition:opacity .2s; z-index:60; pointer-events:none; }
+  .toast.show { opacity:1; }
+  .empty { text-align:center; color:var(--muted); padding:50px 20px; }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid var(--line);
+             border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="row">
+    <h1>Leitura<span>_Bi</span></h1>
+    <div class="tabs">
+      <div class="tab active" data-view="pesquisar">Pesquisar registo</div>
+      <div class="tab" data-view="criar">Criar registo</div>
+      <div class="tab" data-view="pessoas">Pessoas</div>
+    </div>
+    <span class="grow"></span>
+    <span class="muted" id="estado"></span>
+    <input id="apiKey" type="password" placeholder="Chave API" style="width:140px">
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== PESQUISAR ===================== -->
+  <section id="view-pesquisar">
+    <div class="card">
+      <div class="row">
+        <input id="q" class="grow" placeholder="Pesquisar em tudo: agente, ocorrência, morada, NUIPC, texto do PDF...">
+        <select id="order">
+          <option value="recent">Mais recentes</option>
+          <option value="data">Data do relatório</option>
+          <option value="indicativo">Indicativo</option>
+          <option value="matricula">Matrícula</option>
+          <option value="oldest">Mais antigos</option>
+        </select>
+        <button id="btnFace">Pesquisar por rosto</button>
+        <input type="file" id="faceFile" accept="image/*" hidden>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <input id="f_indicativo" placeholder="Indicativo" style="width:120px">
+        <input id="f_matricula" placeholder="Matrícula" style="width:120px">
+        <input id="f_agente" placeholder="Agente (nome ou nº)" style="width:170px">
+        <input id="f_esquadra" placeholder="Esquadra" style="width:120px">
+        <input id="f_nuipc" placeholder="NPP/NUIPC" style="width:130px">
+        <input id="f_de" type="date" title="Data de">
+        <input id="f_ate" type="date" title="Data até">
+        <label class="muted"><input type="checkbox" id="f_nc"> só com não-conformes</label>
+        <label class="muted"><input type="checkbox" id="f_fotos"> só com fotos</label>
+        <button class="ghost" id="limpar">Limpar</button>
+      </div>
+    </div>
+    <div class="row muted" id="resumo" style="margin:14px 2px 10px"></div>
+    <div class="list" id="lista"></div>
+    <div class="row" style="justify-content:center; margin-top:18px">
+      <button id="mais" hidden>Carregar mais</button>
+    </div>
+  </section>
+
+  <!-- ===================== CRIAR ===================== -->
+  <section id="view-criar" hidden>
+    <div class="card">
+      <h2 style="margin-top:0">1 · Ficheiros do registo</h2>
+      <div class="drop" id="drop">
+        <b>Arrasta para aqui</b> o PDF do relatório e as fotos, ou clica para escolher.<br>
+        <span style="font-size:12px">Os dados do PDF são extraídos automaticamente. O ficheiro original fica guardado.</span>
+      </div>
+      <input type="file" id="ficheiros" multiple accept="image/*,application/pdf" hidden>
+      <div class="files" id="listaFicheiros"></div>
+
+      <div id="previa" hidden>
+        <h2>2 · Dados extraídos do PDF <span class="muted" id="previaTemplate"></span></h2>
+        <div class="kv" id="previaCampos"></div>
+        <div id="previaBlocos"></div>
+      </div>
+
+      <h2>3 · Informação adicional</h2>
+      <div class="row">
+        <input id="c_author" placeholder="Registado por" style="width:200px">
+        <input id="c_tags" class="grow" placeholder="Etiquetas separadas por vírgula">
+      </div>
+      <textarea id="c_notas" rows="2" placeholder="Notas internas" style="width:100%; margin-top:10px"></textarea>
+
+      <div class="row" style="margin-top:14px">
+        <button class="primary" id="guardar">Guardar registo</button>
+        <button class="ghost" id="limparCriar">Descartar</button>
+        <span id="estadoCriar" class="muted"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PESSOAS ===================== -->
+  <section id="view-pessoas" hidden>
+    <div class="card">
+      <div class="row"><b>Pessoas reconhecidas</b><span class="muted">— clica numa para ver os registos, duplo-clique para renomear</span></div>
+      <div class="faces" id="pessoas" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+</main>
+
+<dialog id="modal"><div class="modal-body" id="modalBody"></div></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const state = { offset:0, limit:20, total:0, items:[], faceMode:false, personId:null, novos:[], previa:null };
+
+/* ---------- infraestrutura ---------- */
+const key = () => $("apiKey").value.trim();
+const withKey = (url) => key() ? url + (url.includes("?") ? "&" : "?") + "api_key=" + encodeURIComponent(key()) : url;
+
+$("apiKey").value = localStorage.getItem("leiturabi.key") || "";
+$("apiKey").addEventListener("change", () => { localStorage.setItem("leiturabi.key", key()); refrescar(); });
+
+function toast(msg, erro) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.style.borderColor = erro ? "var(--danger)" : "var(--line)";
+  el.classList.add("show");
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("show"), 3000);
+}
+
+async function api(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (key()) headers["X-API-Key"] = key();
+  const response = await fetch(path, { ...options, headers });
+  if (!response.ok) {
+    let detail = `HTTP ${response.status}`;
+    try { detail = (await response.json()).detail || detail; } catch (_) {}
+    throw new Error(detail);
+  }
+  return response.status === 204 ? null : response.json();
+}
+
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+
+/* ---------- separadores ---------- */
+document.querySelectorAll(".tab").forEach((tab) => {
+  tab.onclick = () => {
+    document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t === tab));
+    for (const view of ["pesquisar", "criar", "pessoas"]) {
+      $("view-" + view).hidden = view !== tab.dataset.view;
+    }
+    if (tab.dataset.view === "pessoas") carregarPessoas();
+  };
+});
+
+/* ===================== PESQUISAR ===================== */
+function filtros() {
+  const p = new URLSearchParams({ order: $("order").value, limit: state.limit, offset: state.offset });
+  const campos = { q:"q", indicativo:"f_indicativo", matricula:"f_matricula", agente:"f_agente",
+                   esquadra:"f_esquadra", nuipc:"f_nuipc", data_de:"f_de", data_ate:"f_ate" };
+  for (const [chave, id] of Object.entries(campos)) {
+    const valor = $(id).value.trim();
+    if (valor) p.set(chave, valor);
+  }
+  if ($("f_nc").checked) p.set("com_nao_conformes", "true");
+  if ($("f_fotos").checked) p.set("com_fotos", "true");
+  if (state.personId) p.set("person_id", state.personId);
+  return p.toString();
+}
+
+async function pesquisar(acrescentar = false) {
+  try {
+    $("resumo").innerHTML = '<span class="spinner"></span>';
+    const page = await api("/api/records?" + filtros());
+    state.total = page.total;
+    state.items = acrescentar ? state.items.concat(page.items) : page.items;
+    state.faceMode = false;
+    desenhar();
+  } catch (error) { $("resumo").textContent = ""; toast(error.message, true); }
+}
+
+function desenhar() {
+  const lista = $("lista");
+  lista.innerHTML = "";
+  if (!state.items.length) {
+    lista.innerHTML = '<div class="empty">Sem registos para estes critérios.</div>';
+  }
+  for (const item of state.items) {
+    const el = document.createElement("div");
+    el.className = "rec";
+    const capa = item.cover_url
+      ? `<img class="cover" src="${withKey(item.cover_url)}" alt="">`
+      : `<div class="cover">sem<br>imagem</div>`;
+    const chips = [
+      item.data_original || item.data ? `<span class="chip">${esc(item.data_original || item.data)}</span>` : "",
+      item.turno ? `<span class="chip grey">${esc(item.turno)}</span>` : "",
+      item.viatura_matricula ? `<span class="chip">${esc(item.viatura_matricula)}</span>` : "",
+      item.km_percorridos != null ? `<span class="chip grey">${item.km_percorridos} km</span>` : "",
+      item.occurrence_count ? `<span class="chip ok">${item.occurrence_count} ocorrência(s)</span>` : "",
+      item.offence_count ? `<span class="chip warn">${item.offence_count} auto(s)</span>` : "",
+      item.nao_conformes ? `<span class="chip warn">${item.nao_conformes} não conforme</span>` : "",
+      item.photo_count ? `<span class="chip grey">${item.photo_count} foto(s)</span>` : "",
+      item.pdf_count ? `<span class="chip grey">PDF</span>` : "",
+      item.face_count ? `<span class="chip grey">${item.face_count} rosto(s)</span>` : "",
+      item.score != null ? `<span class="chip ok">semelhança ${(item.score * 100).toFixed(0)}%</span>` : "",
+    ].filter(Boolean).join("");
+
+    el.innerHTML = `${capa}
+      <div>
+        <div class="t">${esc(item.title || "(sem título)")}</div>
+        <div class="sub">${esc(item.esquadra ? item.esquadra + " · " : "")}${esc(item.tripulacao.join(", ") || "sem tripulação registada")}</div>
+        <div class="chips">${chips}</div>
+      </div>
+      <div class="muted" style="text-align:right; font-size:12px">#${item.id}<br>${esc((item.created_at || "").slice(0, 10))}</div>`;
+    el.onclick = () => abrirRegisto(item.id);
+    lista.appendChild(el);
+  }
+  $("resumo").textContent = state.faceMode
+    ? `${state.items.length} registo(s) com rosto semelhante`
+    : `${state.items.length} de ${state.total} registo(s)`;
+  $("mais").hidden = state.faceMode || state.items.length >= state.total;
+}
+
+let temporizador;
+for (const id of ["q","f_indicativo","f_matricula","f_agente","f_esquadra","f_nuipc"]) {
+  $(id).addEventListener("input", () => {
+    clearTimeout(temporizador);
+    temporizador = setTimeout(() => { state.offset = 0; pesquisar(); }, 320);
+  });
+}
+for (const id of ["order","f_de","f_ate","f_nc","f_fotos"]) {
+  $(id).addEventListener("change", () => { state.offset = 0; pesquisar(); });
+}
+$("mais").onclick = () => { state.offset += state.limit; pesquisar(true); };
+$("limpar").onclick = () => {
+  for (const id of ["q","f_indicativo","f_matricula","f_agente","f_esquadra","f_nuipc","f_de","f_ate"]) $(id).value = "";
+  $("f_nc").checked = $("f_fotos").checked = false;
+  state.personId = null; state.offset = 0; pesquisar();
+};
+
+$("btnFace").onclick = () => $("faceFile").click();
+$("faceFile").onchange = async (event) => {
+  const file = event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+  const form = new FormData();
+  form.append("file", file);
+  try {
+    $("resumo").innerHTML = '<span class="spinner"></span> a comparar rostos...';
+    const page = await api("/api/search/face", { method:"POST", body:form });
+    state.items = page.items; state.total = page.total; state.faceMode = true;
+    desenhar();
+  } catch (error) { $("resumo").textContent = ""; toast(error.message, true); }
+};
+
+/* ---------- detalhe do registo ---------- */
+async function abrirRegisto(id) {
+  let r;
+  try { r = await api(`/api/records/${id}`); }
+  catch (error) { return toast(error.message, true); }
+
+  const campo = (rotulo, valor) => valor ? `<div><span>${rotulo}</span><b>${esc(valor)}</b></div>` : "";
+  const sim = (v) => v ? "✔" : "—";
+
+  const ocorrencias = r.ocorrencias.filter((o) => o.area || o.descricao || o.npp_nuipc);
+  const material = r.material.filter((m) => m.verificado || m.quantidade);
+  const naoConforme = r.inspecao.filter((i) => i.condicao && i.condicao !== "C");
+
+  $("modalBody").innerHTML = `
+    <div class="row">
+      <h1 style="margin:0">${esc(r.title)}</h1>
+      <span class="chip">${esc(r.source === "pdf" ? "extraído do PDF" : "manual")}</span>
+      <span class="grow"></span>
+      <button id="fechar">Fechar</button>
+      <button class="danger" id="apagar">Eliminar registo</button>
+    </div>
+
+    <h2>Cabeçalho</h2>
+    <div class="kv">
+      ${campo("Indicativo", r.indicativo)} ${campo("Data", r.data_original || r.data)}
+      ${campo("Turno", r.turno)} ${campo("Divisão", r.divisao)} ${campo("Esquadra", r.esquadra)}
+      ${campo("Comando", r.comando)} ${campo("Registado por", r.author)}
+    </div>
+
+    ${r.tripulacao.length ? `<h2>Tripulação</h2>
+    <table><tr><th>Função</th><th>Categoria</th><th>Matrícula</th><th>Nome</th></tr>
+    ${r.tripulacao.map((c) => `<tr><td>${esc(c.funcao)}</td><td>${esc(c.categoria)}</td>
+      <td>${esc(c.matricula)}</td><td>${esc(c.nome)}</td></tr>`).join("")}</table>` : ""}
+
+    <h2>Viatura</h2>
+    <div class="kv">
+      ${campo("Marca", r.viatura_marca)} ${campo("Modelo", r.viatura_modelo)}
+      ${campo("Matrícula", r.viatura_matricula)} ${campo("Condutor", r.condutor)}
+      ${campo("Data / hora", r.data_hora)} ${campo("Combustível (L)", r.combustivel_lt)}
+      ${campo("KM iniciais", r.km_iniciais)} ${campo("KM finais", r.km_finais)}
+      ${campo("KM percorridos", r.km_percorridos)}
+    </div>
+
+    ${material.length ? `<h2>Material</h2>
+    <table><tr><th>Item</th><th>Verificado</th><th>Quantidade</th></tr>
+    ${material.map((m) => `<tr><td>${esc(m.item)}</td><td>${sim(m.verificado)}</td>
+      <td>${esc(m.quantidade)}</td></tr>`).join("")}</table>` : ""}
+
+    ${ocorrencias.length ? `<h2>Ocorrências (${ocorrencias.length})</h2>
+    <table><tr><th>#</th><th>Área</th><th>Exp.</th><th>NPP/NUIPC</th><th>Chegada</th><th>Saída</th><th>Sup.</th><th>Descrição</th></tr>
+    ${ocorrencias.map((o) => `<tr><td>${o.numero}</td><td>${esc(o.area)}</td><td>${sim(o.expediente)}</td>
+      <td>${esc(o.npp_nuipc)}</td><td>${esc(o.hora_chegada)}</td><td>${esc(o.hora_saida)}</td>
+      <td>${sim(o.supervisor)}</td><td>${esc(o.descricao)}</td></tr>`).join("")}</table>` : ""}
+
+    ${r.autos.length ? `<h2>Autos de notícia por contraordenação</h2>
+    <table><tr><th>NPP/NUIPC</th><th>Responsável</th><th>Motivo</th><th>Local</th></tr>
+    ${r.autos.map((a) => `<tr><td>${esc(a.npp_nuipc)}</td><td>${esc(a.responsavel)}</td>
+      <td>${esc(a.motivo)}</td><td>${esc(a.local)}</td></tr>`).join("")}</table>` : ""}
+
+    ${naoConforme.length ? `<h2>Inspeção — itens a assinalar</h2>
+    <table><tr><th>Item</th><th>Condição</th></tr>
+    ${naoConforme.map((i) => `<tr><td>${esc(i.item)}</td>
+      <td><span class="chip ${i.condicao === "NC" ? "warn" : "grey"}">${esc(i.condicao)}</span></td></tr>`).join("")}
+    </table><div class="muted" style="font-size:12px;margin-top:6px">Restantes ${r.inspecao.length - naoConforme.length} itens conformes.</div>` : ""}
+
+    ${r.observacoes ? `<h2>Observações</h2><div>${esc(r.observacoes).replace(/\n/g, "<br>")}</div>` : ""}
+    ${r.anomalias ? `<h2>Anomalias verificadas</h2><div>${esc(r.anomalias).replace(/\n/g, "<br>")}</div>` : ""}
+
+    <h2>Assinaturas</h2>
+    <div class="kv">${campo("Arvorado do CP", r.arvorado_cp)} ${campo("Graduado de serviço", r.graduado)}
+      ${campo("Entregue por", r.entregue_por)} ${campo("Recebido por", r.recebido_por)}</div>
+
+    <h2>Anexos (${r.anexos.length})</h2>
+    <div class="thumbs">${r.anexos.map(anexoHtml).join("") || '<span class="muted">Nenhum</span>'}</div>
+
+    ${r.face_count ? `<h2>Rostos detetados (${r.face_count})</h2>
+      <div class="faces">${r.anexos.flatMap((a) => a.faces).map(rostoHtml).join("")}</div>
+      <div class="muted" style="font-size:12px;margin-top:6px">Clica num rosto para lhe dar nome.</div>` : ""}
+
+    <h2>Notas internas</h2>
+    <textarea id="d_notas" rows="3" style="width:100%">${esc(r.notas)}</textarea>
+    <div class="row" style="margin-top:8px">
+      <input id="d_tags" class="grow" value="${esc(r.tags.join(", "))}" placeholder="Etiquetas">
+      <button class="primary" id="gravarNotas">Guardar alterações</button>
+    </div>`;
+
+  $("fechar").onclick = () => $("modal").close();
+  $("apagar").onclick = async () => {
+    if (!confirm(`Eliminar o registo #${r.id} e todos os seus anexos?`)) return;
+    await api(`/api/records/${r.id}`, { method:"DELETE" });
+    $("modal").close(); toast("Registo eliminado."); pesquisar();
+  };
+  $("gravarNotas").onclick = async () => {
+    try {
+      await api(`/api/records/${r.id}`, {
+        method:"PATCH", headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ notas: $("d_notas").value,
+          tags: $("d_tags").value.split(",").map((t) => t.trim()).filter(Boolean) }),
+      });
+      toast("Alterações guardadas."); pesquisar();
+    } catch (error) { toast(error.message, true); }
+  };
+  for (const face of r.anexos.flatMap((a) => a.faces)) {
+    const el = document.querySelector(`[data-face="${face.id}"]`);
+    if (el) el.onclick = () => nomearRosto(face, r.id);
+  }
+
+  $("modal").showModal();
+}
+
+function anexoHtml(a) {
+  const capa = a.thumb_url && (a.kind === "photo" || a.page_count)
+    ? `<img src="${withKey(a.thumb_url)}" onclick="window.open('${withKey(a.file_url)}','_blank')">`
+    : `<img src="" onclick="window.open('${withKey(a.file_url)}','_blank')" alt="">`;
+  const etiqueta = a.kind === "pdf" ? `PDF · ${a.page_count || "?"} pág.` : `${a.width}×${a.height}`;
+  return `<figure>${capa}<figcaption><b>${esc(a.original_name)}</b><br>${etiqueta} ·
+    ${(a.size_bytes / 1024 / 1024).toFixed(2)} MB</figcaption></figure>`;
+}
+
+function rostoHtml(f) {
+  return `<figure>
+    <img data-face="${f.id}" src="${withKey(f.crop_url || "")}" title="Clicar para nomear">
+    <figcaption>${esc(f.person_name || "sem nome")}</figcaption></figure>`;
+}
+
+async function nomearRosto(face, recordId) {
+  const nome = prompt("A quem pertence este rosto?", face.person_name || "");
+  if (!nome) return;
+  try {
+    if (face.person_id) {
+      await api(`/api/persons/${face.person_id}`, {
+        method:"PATCH", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ name: nome }) });
+    } else {
+      await api(`/api/faces/${face.id}/assign`, {
+        method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ new_person_name: nome }) });
+    }
+    toast("Rosto identificado como " + nome);
+    abrirRegisto(recordId);
+  } catch (error) { toast(error.message, true); }
+}
+
+/* ===================== CRIAR ===================== */
+$("drop").onclick = () => $("ficheiros").click();
+$("drop").ondragover = (e) => { e.preventDefault(); $("drop").classList.add("over"); };
+$("drop").ondragleave = () => $("drop").classList.remove("over");
+$("drop").ondrop = (e) => {
+  e.preventDefault(); $("drop").classList.remove("over");
+  acrescentarFicheiros([...e.dataTransfer.files]);
+};
+$("ficheiros").onchange = (e) => { acrescentarFicheiros([...e.target.files]); e.target.value = ""; };
+
+async function acrescentarFicheiros(lista) {
+  for (const file of lista) state.novos.push(file);
+  desenharFicheiros();
+  const pdf = state.novos.find((f) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"));
+  if (pdf && !state.previa) await extrair(pdf);
+}
+
+function desenharFicheiros() {
+  $("listaFicheiros").innerHTML = state.novos.map((f, i) =>
+    `<div class="file"><b>${esc(f.name)}</b><span class="muted">${(f.size/1024/1024).toFixed(2)} MB</span>
+     <span class="x" data-i="${i}">✕</span></div>`).join("");
+  document.querySelectorAll("#listaFicheiros .x").forEach((el) => {
+    el.onclick = () => {
+      state.novos.splice(Number(el.dataset.i), 1);
+      if (!state.novos.some((f) => f.name.toLowerCase().endsWith(".pdf"))) {
+        state.previa = null; $("previa").hidden = true;
+      }
+      desenharFicheiros();
+    };
+  });
+}
+
+async function extrair(pdf) {
+  const form = new FormData();
+  form.append("file", pdf);
+  try {
+    $("estadoCriar").innerHTML = '<span class="spinner"></span> a ler o PDF...';
+    const resultado = await api("/api/extract", { method:"POST", body:form });
+    $("estadoCriar").textContent = "";
+    state.previa = resultado;
+    mostrarPrevia(resultado);
+    if (resultado.aviso) toast(resultado.aviso, true);
+  } catch (error) { $("estadoCriar").textContent = ""; toast(error.message, true); }
+}
+
+function mostrarPrevia(resultado) {
+  const d = resultado.dados;
+  if (!d) return;
+  $("previa").hidden = false;
+  $("previaTemplate").textContent = resultado.template ? `— ${resultado.template}` : "";
+  const campo = (rotulo, valor) => valor ? `<div><span>${rotulo}</span><b>${esc(valor)}</b></div>` : "";
+  $("previaCampos").innerHTML = [
+    campo("Indicativo", d.indicativo), campo("Data", d.data_original), campo("Turno", d.turno),
+    campo("Divisão", d.divisao), campo("Esquadra", d.esquadra),
+    campo("Viatura", [d.viatura_marca, d.viatura_matricula].filter(Boolean).join(" ")),
+    campo("KM", d.km_iniciais != null ? `${d.km_iniciais} → ${d.km_finais} (${d.km_percorridos} km)` : ""),
+  ].join("");
+  const ocorrencias = d.ocorrencias.filter((o) => o.area || o.descricao);
+  const nc = d.inspecao.filter((i) => i.condicao && i.condicao !== "C");
+  $("previaBlocos").innerHTML = `
+    <div class="chips" style="margin-top:10px">
+      <span class="chip">${d.tripulacao.length} tripulante(s)</span>
+      <span class="chip ok">${ocorrencias.length} ocorrência(s)</span>
+      <span class="chip warn">${d.autos.length} auto(s)</span>
+      <span class="chip ${nc.length ? "warn" : "grey"}">${nc.length} item(ns) a assinalar</span>
+    </div>
+    ${ocorrencias.length ? `<table style="margin-top:10px"><tr><th>#</th><th>Área</th><th>Chegada</th><th>Saída</th><th>Descrição</th></tr>
+      ${ocorrencias.map((o) => `<tr><td>${o.numero}</td><td>${esc(o.area)}</td><td>${esc(o.hora_chegada)}</td>
+        <td>${esc(o.hora_saida)}</td><td>${esc(o.descricao)}</td></tr>`).join("")}</table>` : ""}`;
+}
+
+$("guardar").onclick = async () => {
+  if (!state.novos.length) return toast("Escolhe pelo menos um ficheiro.", true);
+  const form = new FormData();
+  for (const file of state.novos) form.append("files", file);
+  form.append("author", $("c_author").value);
+  form.append("tags", $("c_tags").value);
+  form.append("notas", $("c_notas").value);
+  form.append("device", "UI web");
+  try {
+    $("estadoCriar").innerHTML = '<span class="spinner"></span> a guardar...';
+    const resultado = await api("/api/records", { method:"POST", body:form });
+    $("estadoCriar").textContent = "";
+    toast(`Registo #${resultado.record.id} criado · ${resultado.anexos_novos} anexo(s) · ${resultado.rostos_detetados} rosto(s)`);
+    for (const aviso of resultado.avisos) toast(aviso, true);
+    descartar();
+    document.querySelector('.tab[data-view="pesquisar"]').click();
+    state.offset = 0; pesquisar();
+  } catch (error) { $("estadoCriar").textContent = ""; toast(error.message, true); }
+};
+
+function descartar() {
+  state.novos = []; state.previa = null;
+  $("previa").hidden = true; $("listaFicheiros").innerHTML = "";
+  $("c_tags").value = ""; $("c_notas").value = "";
+}
+$("limparCriar").onclick = descartar;
+
+/* ===================== PESSOAS ===================== */
+async function carregarPessoas() {
+  try {
+    const pessoas = await api("/api/persons?min_faces=1&limit=200");
+    $("pessoas").innerHTML = pessoas.length ? pessoas.map((p) => `<figure>
+        <img data-person="${p.id}" src="${withKey(p.cover_url || "")}" title="${esc(p.name || "sem nome")}">
+        <figcaption>${esc(p.name || "#" + p.id)}<br>${p.record_count} registo(s)</figcaption></figure>`).join("")
+      : '<span class="muted">Ainda não há rostos detetados.</span>';
+    document.querySelectorAll("[data-person]").forEach((el) => {
+      const id = Number(el.dataset.person);
+      const pessoa = pessoas.find((p) => p.id === id);
+      el.onclick = () => {
+        state.personId = id; state.offset = 0;
+        document.querySelector('.tab[data-view="pesquisar"]').click();
+        pesquisar();
+        toast("A mostrar registos de " + (pessoa.name || "#" + id));
+      };
+      el.ondblclick = async (event) => {
+        event.stopPropagation();
+        const nome = prompt("Nome desta pessoa:", pessoa.name || "");
+        if (nome === null) return;
+        await api(`/api/persons/${id}`, { method:"PATCH",
+          headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ name: nome }) });
+        carregarPessoas();
+      };
+    });
+  } catch (error) { toast(error.message, true); }
+}
+
+/* ===================== arranque ===================== */
+async function refrescar() {
+  try {
+    const h = await api("/health");
+    $("estado").textContent =
+      `${h.records} registos · ${h.faces} rostos · facial: ${h.face_engine} · PDF: ${h.pdf_engine}`;
+  } catch (_) { $("estado").textContent = "servidor inacessível"; }
+  pesquisar();
+}
+refrescar();
+</script>
+</body>
+</html>
